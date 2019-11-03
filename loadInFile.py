@@ -8,15 +8,16 @@ import mysql.connector
 from mysql.connector.constants import ClientFlag
 
 mydb = mysql.connector.connect(
-    host='dso510.crwguugsb6rh.us-east-1.rds.amazonaws.com',
-    user='admin',
-    passwd='tottiASR10',
-    database='reviews2',
+    host=''#your mysql server,
+    user=''#your login,
+    passwd=''#your password,
+    database=''#database name,
     allow_local_infile=True
 )
 
 cur = mydb.cursor()
 
+#import the .tsv file into a Pandas dataframe
 def importClean(datasetFile):
     df = pd.read_csv(datasetFile, sep='\t', error_bad_lines=False, warn_bad_lines=False)
     df['review_date'] = pd.to_datetime(df['review_date'], errors='coerce')
@@ -26,6 +27,7 @@ def importClean(datasetFile):
 
     return df
 
+#create the table in the SQL database
 def createTable(name):
     creationString = "CREATE TABLE " + name + "("
     creationString += "marketplace VARCHAR(4),"
@@ -46,22 +48,16 @@ def createTable(name):
     cur.execute(creationString)
     mydb.commit()
 
-allFiles = glob.glob('/home/ec2-user/reviews/USreviews/amazon_reviews_us_*.tsv')
+#add the path to the directory containing the datasets
+allFiles = glob.glob('')
 for i in allFiles:
-    s = i.replace('/home/ec2-user/reviews/USreviews/amazon_reviews_us_','')
+    s = i.replace('#the path to the datasets#','')
     s = s.replace('.tsv','')
     print('creating table',s)
     createTable(s)
+    #load all the data, usage of "LOAD DATA LOCAL INFILE" may vary by SQL version and permissions
     loadDataString = 'LOAD DATA LOCAL INFILE \'' + i + '\' INTO TABLE ' + s + ';'
     print(loadDataString)
     cur.execute(loadDataString)
     mydb.commit()
-
-#beauty = importClean('/Volumes/Untitled/Amazon Reviews/Categories/amazon_reviews_us_Beauty_v1_00.tsv')
-#createDB('Beauty')
-
-
-
-
-#for name in list(giftcards.columns):
     
